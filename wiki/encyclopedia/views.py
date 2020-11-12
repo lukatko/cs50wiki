@@ -1,8 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, HttpResponse
 import markdown2
 from . import util
 from . import forms
-import time
+import random
 
 def search(request):
     if (request.method == "POST"):
@@ -29,18 +29,21 @@ def index(request):
     })
 
 def entry(request, entry):
-    argument = util.get_entry(entry)
-    if (argument is None):
-        return render(request, "encyclopedia/error.html", {
-            "entry": entry,
-            "form": forms.SearchForm()
-        })
+    if (request.method == "POST"):
+        return edit_page(request, entry)
     else:
-        return render(request, "encyclopedia/entry.html", {
-            "name": entry,
-            "entry": markdown2.markdown(argument),
-            "form": forms.SearchForm()
-        })
+        argument = util.get_entry(entry)
+        if (argument is None):
+            return render(request, "encyclopedia/error.html", {
+                "entry": entry,
+                "form": forms.SearchForm()
+            })
+        else:
+            return render(request, "encyclopedia/entry.html", {
+                "name": entry,
+                "entry": markdown2.markdown(argument),
+                "form": forms.SearchForm()
+            })
 
 def create_new_page(request):
     if (request.method == "POST"):
@@ -57,12 +60,28 @@ def create_new_page(request):
                 })
             else:
                 util.save_entry(title, text)
-                return redirect(request, f"wiki/{title}")
+                return redirect(f"wiki/{title}")
     else:
         return render(request, "encyclopedia/create.html", {
             "form": forms.SearchForm(),
             "create_form": forms.CreateForm(),
             "flag": 0
         })
-                
-            
+
+def edit_page(request, entry):
+    if (request.method == "POST"):
+        form = forms.EditForm(request.POST)
+        if (form.is_valid()):
+            content = form.cleaned_data["edit"]
+            util.save_entry(entry, content)
+            return redirect(f'/wiki/{entry}')
+    else:
+        form = forms.EditForm({'edit': util.get_entry(entry)})
+        return render(request, 'encyclopedia/edit.html', {
+            "entry": entry,
+            "form": forms.SearchForm(),
+            "edit_form": form
+        })
+
+def random_page(request):
+    return redirect(f'/wiki/{random.choice(util.list_entries())}')      
