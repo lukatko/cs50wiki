@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 import markdown2
 from . import util
 from . import forms
+import time
 
 def search(request):
     if (request.method == "POST"):
@@ -41,6 +42,27 @@ def entry(request, entry):
             "form": forms.SearchForm()
         })
 
-    
+def create_new_page(request):
+    if (request.method == "POST"):
+        form  = forms.CreateForm(request.POST)
+        if (form.is_valid()):
+            text = form.cleaned_data["create"]
+            title = form.cleaned_data["title"]
+            if (title in util.list_entries()):
+                util.save_entry(title, text)
+                return render(request, "encyclopedia/create.html", {
+                    "form": forms.SearchForm,
+                    "create_form": forms.CreateForm(),
+                    "flag": 1
+                })
+            else:
+                util.save_entry(title, text)
+                return redirect(request, f"wiki/{title}")
+    else:
+        return render(request, "encyclopedia/create.html", {
+            "form": forms.SearchForm(),
+            "create_form": forms.CreateForm(),
+            "flag": 0
+        })
                 
             

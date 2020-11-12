@@ -36,3 +36,13 @@ textarea {
 .sidebar h2 {
     margin-top: 5px;
 }
+
+#title {
+    display: block;
+}
+
+#create {
+    display: block;
+    width: 70%;
+    height: 400px;
+}
