@@ -46,3 +46,7 @@ textarea {
     width: 70%;
     height: 400px;
 }
+
+.row {
+    margin: 0;
+}

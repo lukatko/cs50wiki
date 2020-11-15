@@ -5,27 +5,21 @@ from . import forms
 import random
 
 def search(request):
-    if (request.method == "POST"):
-        form = forms.SearchForm(request.POST)
-        if (form.is_valid()):
-            value = form.cleaned_data["search"]
-            entries = util.list_entries()
-            if (value in entries):
-                return redirect(f"/wiki/{value}")
-            else:
-                strings_with_value = [i for i in entries if value in i]
-                return render(request, "encyclopedia/search.html", {
-                    "entries": strings_with_value,
-                    "search": value,
-                    "form": forms.SearchForm()
-                })
-    else:
-        return index(request)
+    if (request.method == "GET"):
+        search = request.GET.get("search")
+        if (search in util.list_entries()):
+            return redirect(f"/wiki/{search}")
+        else:
+            posts = [i for i in util.list_entries() if search in i]
+            return render(request, "encyclopedia/search.html", {
+                "search": search,
+                "entries": posts
+            })
+
 
 def index(request):
     return render(request, "encyclopedia/index.html", {
-        "entries": util.list_entries(),
-        "form": forms.SearchForm()
+        "entries": util.list_entries()
     })
 
 def entry(request, entry):
@@ -35,14 +29,12 @@ def entry(request, entry):
         argument = util.get_entry(entry)
         if (argument is None):
             return render(request, "encyclopedia/error.html", {
-                "entry": entry,
-                "form": forms.SearchForm()
+                "entry": entry
             })
         else:
             return render(request, "encyclopedia/entry.html", {
                 "name": entry,
-                "entry": markdown2.markdown(argument),
-                "form": forms.SearchForm()
+                "entry": markdown2.markdown(argument)
             })
 
 def create_new_page(request):
@@ -54,7 +46,6 @@ def create_new_page(request):
             if (title in util.list_entries()):
                 util.save_entry(title, text)
                 return render(request, "encyclopedia/create.html", {
-                    "form": forms.SearchForm,
                     "create_form": forms.CreateForm(),
                     "flag": 1
                 })
@@ -63,7 +54,6 @@ def create_new_page(request):
                 return redirect(f"wiki/{title}")
     else:
         return render(request, "encyclopedia/create.html", {
-            "form": forms.SearchForm(),
             "create_form": forms.CreateForm(),
             "flag": 0
         })
@@ -79,7 +69,6 @@ def edit_page(request, entry):
         form = forms.EditForm({'edit': util.get_entry(entry)})
         return render(request, 'encyclopedia/edit.html', {
             "entry": entry,
-            "form": forms.SearchForm(),
             "edit_form": form
         })
 
